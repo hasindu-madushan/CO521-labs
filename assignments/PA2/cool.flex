@@ -42,6 +42,7 @@ char *string_buf_ptr;
 #define INSERT_CHAR_TO_STR_CONST(c) \
     if (string_const_size >= MAX_STR_CONST - 1) {\
 	yylval.error_msg = "String constant too long";\
+	BEGIN(STR_ERROR);\
 	return ERROR;}\
     string_buf[string_const_size++] = c;
 
@@ -219,10 +220,12 @@ flase		{
 }
 
 <STR_ERROR>["] {
+    /* When an error occured in the string the error ends at " */
     BEGIN(INITIAL);
 }
 
 \n		{
+    /* Need to update the number of lines in the INITAL state */
     curr_lineno++;
 }
 
