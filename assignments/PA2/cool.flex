@@ -17,7 +17,7 @@
 #define yylex  cool_yylex
 
 /* Max size of string constants */
-#define MAX_STR_CONST 1025
+#define MAX_STRING_CONST 1025
 #define YY_NO_UNPUT   /* keep g++ happy */
 
 extern FILE *fin; /* we read from this file */
@@ -31,35 +31,8 @@ extern FILE *fin; /* we read from this file */
 	if ( (result = fread( (char*)buf, sizeof(char), max_size, fin)) < 0) \
 		YY_FATAL_ERROR( "read() in flex scanner failed");
 
-char string_buf[MAX_STR_CONST]; /* to assemble string constants */
-int string_const_size;
+char string_buf[MAX_STRING_CONST]; /* to assemble string constants */
 char *string_buf_ptr;
-
-#define SET_ERROR(msg) \
-	yylval.error_msg = msg;\
-	return ERROR;
-    
-#define INSERT_CHAR_TO_STR_CONST(c) \
-    if (string_const_size >= MAX_STR_CONST - 1) {\
-	yylval.error_msg = "String constant too long";\
-	BEGIN(STR_ERROR);\
-	return ERROR;}\
-    string_buf[string_const_size++] = c;
-
-    
-/* TODO: move to somewhere else */
-char get_escape_char() 
-{
-    char c;
-    switch (yytext[1]) 
-    {
-	case 'n': c = '\n'; break;
-	case 'b': c = '\b'; break;
-	case 't': c = '\t'; break;
-	case 'f': c = '\f'; break;
-    }
-    return c;
-}
 
 extern int curr_lineno;
 extern int verbose_flag;
@@ -70,19 +43,74 @@ extern YYSTYPE cool_yylval;
  *  Add Your own definitions here
  */
 
+/**
+ * The current size of the string literal. This will be updated while the lexer  
+ * is in the STRING state 
+ */
+int string_const_size;
+
+/**
+ * The macro for returning an error 
+ */
+#define SET_ERROR(msg) \
+	yylval.error_msg = msg;\
+	return ERROR;
+    
+/**
+ * Insert a single char to the current string constant buffer. 
+ * It first cheks for the current length. If the buffer is full it will 
+ * return an ERROR. Otherwise, the character will be inserted to the buffer 
+ */
+#define INSERT_CHAR_TO_STRING_CONST(c) \
+    if (string_const_size >= MAX_STRING_CONST - 1) {\
+	yylval.error_msg = "String constant too long";\
+	BEGIN(STRING_ERROR);\
+	return ERROR;}\
+    string_buf[string_const_size++] = c;
+
+/**
+ * This is used when a /n, /t, /f, /b is detected. It will return the corresponding
+ * espcate sequence by checking the yytext.
+ */
+char get_escape_char() 
+{
+    /* Decide based on the second charater of the yytext */
+    switch (yytext[1]) 
+    {
+	case 'n': return '\n';
+	case 'b': return '\b';
+	case 't': return '\t';
+	case 'f': return '\f';
+    }
+    return 0;
+}
 
 %}
+
+/**
+ * The state when the lexer inside a multiline comment 
+ */
+%x COMMENT
+
+/**
+ * The state of the lexer when it is inside a string literal 
+ */
+%x STRING
+
+/**
+ * The lexer enters the STRING_ERROR state when an error (null character or string is too 
+ * long) is occured. The state will be changed to the INITIAL when the "end of the string" 
+ * is reached.
+ */
+%x STRING_ERROR
 
 /*
  * Define names for regular expressions here.
  */
 
-%x CMT
-%x STR
-%x STR_ERROR
-
 DARROW          =>
 DIGIT 		[0-9]
+NAME		[a-zA-Z0-9_]
 
 
 %%
@@ -93,23 +121,23 @@ DIGIT 		[0-9]
 
 
 "(*" 		{
-    BEGIN(CMT);
+    BEGIN(COMMENT);
 }
 
-<CMT><<EOF>> 	{
+<COMMENT><<EOF>> 	{
     BEGIN(INITIAL);
     SET_ERROR("EOF in comment");
 }
 
-<CMT>"*)" {
+<COMMENT>"*)" {
     BEGIN(INITIAL);
 }
 
-<CMT>\n		{
+<COMMENT>\n		{
     curr_lineno++;
 }
 
-<CMT>.	 	{
+<COMMENT>.	 	{
     //std::cout << yytext << std::endl;
 }
 
@@ -122,7 +150,7 @@ DIGIT 		[0-9]
 }
 
  /*
-  *  The multiple-character operators.
+  *  The operators.
   */
 "."		{ return '.'; }
 ","		{ return ','; }
@@ -163,22 +191,26 @@ DIGIT 		[0-9]
 (?i:not)	{ return NOT; }
 
 
-true 		{
+t(?i:rue) 		{
+    /* The first letter must be lower and rest is case insensitive */
     cool_yylval.boolean = true;
     return BOOL_CONST;
 }
 
-flase		{
+f(?i:alse)		{
+    /* The first letter must be lower and rest is case insensitive */
     cool_yylval.boolean = false;
     return BOOL_CONST;
 }
 
-[a-z][a-zA-Z0-9_]* {
+[a-z]{NAME}* {
+    /* The ids that start with a lower case letter is a object id */
     cool_yylval.symbol = idtable.add_string(yytext);
     return OBJECTID;
 }
 
-[A-Z][a-zA-Z0-9_]* {
+[A-Z]{NAME}* {
+    /* The ids that start with a upper case letter is a type id */
     cool_yylval.symbol = idtable.add_string(yytext);
     return TYPEID;
 }
@@ -196,49 +228,51 @@ flase		{
   */
 ["] 		{ 
     /* Start of the string literal */
-    BEGIN(STR); 
+    BEGIN(STRING); 
     string_const_size = 0;
 }
 
-<STR>\\\n 	{ 
+<STRING>\\\n 	{ 
     /* Ignore the escaped new line */ 
     curr_lineno++;
 }
 
-<STR,STR_ERROR>\n		{
+<STRING,STRING_ERROR>\n		{
    curr_lineno++;
    BEGIN(INITIAL);
    yylval.error_msg = "Unterminated string constant";
    return ERROR; 
 }
 
-<STR><<EOF>> 	{
+<STRING><<EOF>> 	{
     yylval.error_msg = "EOF in string constant";
     return ERROR;
 }
 
-<STR>\0		{ 
-    BEGIN(STR_ERROR);
+<STRING>\0		{ 
+    BEGIN(STRING_ERROR);
     SET_ERROR("String contains null character"); 
 }
 
-<STR>\\[nbtf] 	{
-    INSERT_CHAR_TO_STR_CONST(get_escape_char());
+<STRING>\\[nbtf] 	{
+    INSERT_CHAR_TO_STRING_CONST(get_escape_char());
 }
 
-<STR>[^"\\]	{
+<STRING>[^"\\]	{
     /* TODO: Test for \c !!! */
-    INSERT_CHAR_TO_STR_CONST(yytext[0]);
+    INSERT_CHAR_TO_STRING_CONST(yytext[0]);
 }
 
-<STR>["] 	{
+<STRING>["] 	{
+    /* Then end of a legal string literal */
     string_buf[string_const_size] = '\0';
+    /* Add the found string to the string table */
     yylval.symbol = stringtable.add_string(string_buf, string_const_size);
     BEGIN(INITIAL); 
     return STR_CONST;
 }
 
-<STR_ERROR>["] {
+<STRING_ERROR>["] {
     /* When an error occured in the string the error ends at " */
     BEGIN(INITIAL);
 }

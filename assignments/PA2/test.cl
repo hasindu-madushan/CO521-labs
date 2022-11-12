@@ -4,10 +4,12 @@
    no error checking is done *)
 class CellularAutomaton inherits IO {
     population_map : String;
+    flag: Boolean;
    
     init(map : String) : SELF_TYPE {
         {
             population_map <- map;
+	    flag <- true;
             self;
         }
     };
