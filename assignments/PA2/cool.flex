@@ -76,11 +76,12 @@ extern YYSTYPE cool_yylval;
  * Define names for regular expressions here.
  */
 
-%x STR
 %x CMT
+%x STR
+%x STR_ERROR
 
 DARROW          =>
-DIGIT [0-9]
+DIGIT 		[0-9]
 
 
 %%
@@ -99,8 +100,16 @@ DIGIT [0-9]
     SET_ERROR("EOF in comment");
 }
 
-<CMT>(.|\n)*"*)" {
+<CMT>"*)" {
     BEGIN(INITIAL);
+}
+
+<CMT>\n		{
+    curr_lineno++;
+}
+
+<CMT>.	 	{
+    //std::cout << yytext << std::endl;
 }
 
 "*)"		{
@@ -118,13 +127,14 @@ DIGIT [0-9]
 ")" 		{ return ')'; }
 "+"		{ return '+'; }
 "-" 		{ return '-'; }
+"<"		{ return '<'; }
 ":"		{ return ':'; }
 
  /*
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
   */
-{DARROW}	{ return (DARROW); }
+{DARROW}	{ return DARROW; }
 (?i:class)	{ return CLASS; } 
 (?i:if) 	{ return IF; }
 (?i:else) 	{ return ELSE; }
@@ -153,7 +163,7 @@ flase		{
     return TYPEID;
 }
 
-{DIGIT}+ 	{ 
+{DIGIT}+	{ 
     yylval.symbol = inttable.add_int(atol(yytext));
     return INT_CONST;
 }
@@ -170,9 +180,13 @@ flase		{
     string_const_size = 0;
 }
 
-<STR>\\\n 	{ /* Ignore the escaped new line */ }
+<STR>\\\n 	{ 
+    /* Ignore the escaped new line */ 
+    curr_lineno++;
+}
 
-<STR>\n		{
+<STR,STR_ERROR>\n		{
+   curr_lineno++;
    BEGIN(INITIAL);
    yylval.error_msg = "Unterminated string constant";
    return ERROR; 
@@ -183,8 +197,8 @@ flase		{
     return ERROR;
 }
 
-<STR>\0.*["]	{ 
-    BEGIN(INITIAL);
+<STR>\0		{ 
+    BEGIN(STR_ERROR);
     SET_ERROR("String contains null character"); 
 }
 
@@ -202,6 +216,14 @@ flase		{
     yylval.symbol = stringtable.add_string(string_buf, string_const_size);
     BEGIN(INITIAL); 
     return STR_CONST;
+}
+
+<STR_ERROR>["] {
+    BEGIN(INITIAL);
+}
+
+\n		{
+    curr_lineno++;
 }
 
 %%
