@@ -110,6 +110,9 @@ char get_escape_char()
 
 DARROW          =>
 DIGIT 		[0-9]
+/**
+ * The alphabetical character, digit, or underscore(_)
+ */
 NAME		[a-zA-Z0-9_]
 
 
@@ -121,27 +124,31 @@ NAME		[a-zA-Z0-9_]
 
 
 "(*" 		{
+    /* Begining of the multiline comment */
     BEGIN(COMMENT);
 }
 
 <COMMENT><<EOF>> 	{
+    /* EOF found before the multiline comment ends */
     BEGIN(INITIAL);
     SET_ERROR("EOF in comment");
 }
 
 <COMMENT>"*)" {
+    /* End of the multiline comment */
     BEGIN(INITIAL);
 }
 
-<COMMENT>\n		{
+<COMMENT>\n	{
+    /* A new line inside a multiline comment. Does not do anything 
+     * other than increaseing the line count */
     curr_lineno++;
 }
 
-<COMMENT>.	 	{
-    //std::cout << yytext << std::endl;
-}
+<COMMENT>.	{ /* Ignore the content of the comment */ }
 
 "*)"		{
+    /* *) without a comment */
     SET_ERROR("Unmatched *)");
 }
 
@@ -216,6 +223,7 @@ f(?i:alse)		{
 }
 
 {DIGIT}+	{ 
+    /* The integer literal consists of one or more digits */
     yylval.symbol = inttable.add_int(atol(yytext));
     return INT_CONST;
 }
@@ -238,23 +246,30 @@ f(?i:alse)		{
 }
 
 <STRING,STRING_ERROR>\n		{
-   curr_lineno++;
-   BEGIN(INITIAL);
-   yylval.error_msg = "Unterminated string constant";
-   return ERROR; 
+    /* When the unescaped new line is found (even after an error found previousely)  
+     * inside a string literal, return an error */
+    curr_lineno++;
+    BEGIN(INITIAL);
+    yylval.error_msg = "Unterminated string constant";
+    return ERROR; 
 }
 
 <STRING><<EOF>> 	{
+    /* file ends before a string literal */
     yylval.error_msg = "EOF in string constant";
     return ERROR;
 }
 
 <STRING>\0		{ 
+    /* No character \0 in a string literal string */
     BEGIN(STRING_ERROR);
     SET_ERROR("String contains null character"); 
 }
 
 <STRING>\\[nbtf] 	{
+    /* When one of escape character \n, \b, \t, \f is found, first find the 
+     * single character for the sequence \x (x = n|b|t|f) and insert to the 
+     * string literal buffer */
     INSERT_CHAR_TO_STRING_CONST(get_escape_char());
 }
 
