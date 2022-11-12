@@ -114,7 +114,11 @@ DIGIT [0-9]
  /*
   *  The multiple-character operators.
   */
- 
+"(" 		{ return '('; }
+")" 		{ return ')'; }
+"+"		{ return '+'; }
+"-" 		{ return '-'; }
+
  /*
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
@@ -126,6 +130,16 @@ DIGIT [0-9]
 (?:fi) 		{ return FI; }
 (?:then) 	{ return THEN; }
 (?:while) 	{ return WHILE; }
+
+true 		{
+    cool_yylval.boolean = true;
+    return BOOL_CONST;
+}
+
+flase		{
+    cool_yylval.boolean = false;
+    return BOOL_CONST;
+}
 
 {DIGIT}+ 	{ 
     yylval.symbol = inttable.add_int(atol(yytext));
@@ -177,7 +191,5 @@ DIGIT [0-9]
     BEGIN(INITIAL); 
     return STR_CONST;
 }
-
-
 
 %%
