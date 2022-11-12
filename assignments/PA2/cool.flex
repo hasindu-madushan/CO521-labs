@@ -124,12 +124,20 @@ DIGIT 		[0-9]
  /*
   *  The multiple-character operators.
   */
+"."		{ return '.'; }
+","		{ return ','; }
 "(" 		{ return '('; }
 ")" 		{ return ')'; }
 "+"		{ return '+'; }
 "-" 		{ return '-'; }
 "<"		{ return '<'; }
 ":"		{ return ':'; }
+";"		{ return ';'; }
+"{"		{ return '{'; }
+"}"		{ return '}'; }
+"="		{ return '='; }
+"<-"		{ return ASSIGN; }
+
 
  /*
   * Keywords are case-insensitive except for the values true and false,
@@ -143,6 +151,17 @@ DIGIT 		[0-9]
 (?i:then) 	{ return THEN; }
 (?i:while) 	{ return WHILE; }
 (?i:let)	{ return LET; }
+(?i:pool)	{ return POOL; }
+(?i:inherits)	{ return INHERITS; }
+(?i:in)		{ return IN; }
+(?i:loop)	{ return LOOP; }
+(?i:then)	{ return THEN; }
+(?i:case)	{ return CASE; }
+(?i:esac)	{ return ESAC; }
+(?i:new)	{ return NEW; }
+(?i:of)		{ return OF; }
+(?i:not)	{ return NOT; }
+
 
 true 		{
     cool_yylval.boolean = true;
@@ -227,6 +246,13 @@ flase		{
 \n		{
     /* Need to update the number of lines in the INITAL state */
     curr_lineno++;
+}
+
+[ \t]	{ /* Ignore white spaces */ }
+
+.	{ 
+    /* A character doesn't belong to above rules is an error */
+    SET_ERROR(yytext);
 }
 
 %%
