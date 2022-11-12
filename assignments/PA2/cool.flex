@@ -118,18 +118,20 @@ DIGIT [0-9]
 ")" 		{ return ')'; }
 "+"		{ return '+'; }
 "-" 		{ return '-'; }
+":"		{ return ':'; }
 
  /*
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
   */
 {DARROW}	{ return (DARROW); }
-(?:class)	{ return CLASS; } 
-(?:if) 		{ return IF; }
-(?:else) 	{ return ELSE; }
-(?:fi) 		{ return FI; }
-(?:then) 	{ return THEN; }
-(?:while) 	{ return WHILE; }
+(?i:class)	{ return CLASS; } 
+(?i:if) 	{ return IF; }
+(?i:else) 	{ return ELSE; }
+(?i:fi) 	{ return FI; }
+(?i:then) 	{ return THEN; }
+(?i:while) 	{ return WHILE; }
+(?i:let)	{ return LET; }
 
 true 		{
     cool_yylval.boolean = true;
@@ -139,6 +141,16 @@ true 		{
 flase		{
     cool_yylval.boolean = false;
     return BOOL_CONST;
+}
+
+[a-z][a-zA-Z0-9_]* {
+    cool_yylval.symbol = idtable.add_string(yytext);
+    return OBJECTID;
+}
+
+[A-Z][a-zA-Z0-9_]* {
+    cool_yylval.symbol = idtable.add_string(yytext);
+    return TYPEID;
 }
 
 {DIGIT}+ 	{ 
