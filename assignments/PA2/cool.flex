@@ -159,13 +159,17 @@ NAME		[a-zA-Z0-9_]
  /*
   *  The operators.
   */
+"@"		{ return '@'; }
 "."		{ return '.'; }
 ","		{ return ','; }
 "(" 		{ return '('; }
 ")" 		{ return ')'; }
+"*"		{ return '*'; }
+"/"		{ return '/'; }
 "+"		{ return '+'; }
 "-" 		{ return '-'; }
 "<"		{ return '<'; }
+"<="		{ return LE; }
 ":"		{ return ':'; }
 ";"		{ return ';'; }
 "{"		{ return '{'; }
@@ -196,6 +200,7 @@ NAME		[a-zA-Z0-9_]
 (?i:new)	{ return NEW; }
 (?i:of)		{ return OF; }
 (?i:not)	{ return NOT; }
+(?i:isvoid)	{ return ISVOID; }
 
 
 t(?i:rue) 		{
@@ -297,7 +302,7 @@ f(?i:alse)		{
     curr_lineno++;
 }
 
-[ \t]	{ /* Ignore white spaces */ }
+[ \t\v\f\r]	{ /* Ignore white spaces */ }
 
 .	{ 
     /* A character doesn't belong to above rules is an error */

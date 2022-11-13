@@ -4,12 +4,12 @@
    no error checking is done *)
 class CellularAutomaton inherits IO {
     population_map : String;
-    flag: Boolean;
+    flag: Bool;
    
     init(map : String) : SELF_TYPE {
         {
             population_map <- map;
-	    flag <- true;
+	    flag <- true; -- for testing boolean
             self;
         }
     };
@@ -79,15 +79,27 @@ class CellularAutomaton inherits IO {
 
 class Main {
     cells : CellularAutomaton;
+    x: Int;
+    b: Bool;
    
     main() : SELF_TYPE {
         {
             cells <- (new CellularAutomaton).init("         X         ");
+
+	    -- LE 
+	    b <- x <= 5;
+
+	    (* Case *)
+	    case x + 1 of 
+		k : Int => x * x;
+	    esac;
+
             cells.print();
             (let countdown : Int <- 20 in
                 while countdown > 0 loop
                     {
                         cells.evolve();
+			cells@CellularAutomaton.evolve();
                         cells.print();
                         countdown <- countdown - 1;
                     
