@@ -16,7 +16,9 @@ class CellularAutomaton inherits IO {
    
     print() : SELF_TYPE {
         {
-            out_string(population_map.concat("Hello\n"));
+	    (* unscpaed new line ! *)
+            out_string(population_map.concat("He
+llo\n"));
             self;
         }
     };
@@ -77,11 +79,14 @@ class CellularAutomaton inherits IO {
     };
 };
 
+^^ -- Must show errors
+
 class Main {
     cells : CellularAutomaton;
     x: Int;
     b: Bool;
-   
+    
+*)
     main() : SELF_TYPE {
         {
             cells <- (new CellularAutomaton).init("         X         ");
@@ -90,9 +95,12 @@ class Main {
 	    b <- x <= 5;
 
 	    (* Case *)
-	    case x + 1 of 
+	    case x + 001 of 
 		k : Int => x * x;
 	    esac;
+
+	    -- Valid escape characters test
+	    let s: String <- "\n\f\t\b";
 
             cells.print();
             (let countdown : Int <- 20 in
