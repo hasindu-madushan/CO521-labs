@@ -91,16 +91,6 @@ class Main {
         {
             cells <- (new CellularAutomaton).init("         X         ");
 
-	    -- LE 
-	    b <- x <= 5;
-
-	    (* Case *)
-	    case x + 001 of 
-		k : Int => x * x;
-	    esac;
-
-	    -- Valid escape characters test
-	    let s: String <- "\n\f\t\b";
 
             cells.print();
             (let countdown : Int <- 20 in
@@ -112,8 +102,29 @@ class Main {
                         countdown <- countdown - 1;
                     
                 pool
-            );  (* end let countdown
+            );  
             self;
         }
     };
 };
+
+
+tRue 
+faLsE 
+False True
+
+if3 breif_3
+looping
+
+-- LE 
+b <- x <= 5;
+
+(* Case *)
+case x + 001 of 
+    k : Int => x * x;
+esac;
+
+-- Valid escape characters test
+let s: String <- "\n\f\t\b";
+
+name124 (* end let countdown

@@ -657,7 +657,7 @@ static const flex_int16_t yy_rule_linenum[59] =
       177,  178,  179,  186,  187,  188,  189,  190,  191,  192,
       193,  194,  195,  196,  197,  198,  199,  200,  201,  202,
       203,  204,  207,  213,  219,  225,  231,  243,  249,  254,
-      269,  275,  282,  287,  296,  301,  306,  308
+      267,  273,  280,  285,  294,  299,  304,  306
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -1467,21 +1467,19 @@ YY_RULE_SETUP
      * inside a string literal, return an error */
     curr_lineno++;
     BEGIN(INITIAL);
-    yylval.error_msg = "Unterminated string constant";
-    return ERROR; 
+    SET_ERROR("Unterminated string constant");
 }
 	YY_BREAK
 case YY_STATE_EOF(STRING):
-#line 263 "cool.flex"
+#line 262 "cool.flex"
 {
     /* file ends before a string literal */
-    yylval.error_msg = "EOF in string constant";
-    return ERROR;
+    SET_ERROR("EOF in string constant");
 }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 269 "cool.flex"
+#line 267 "cool.flex"
 { 
     /* No character \0 in a string literal string */
     BEGIN(STRING_ERROR);
@@ -1490,7 +1488,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 275 "cool.flex"
+#line 273 "cool.flex"
 {
     /* When one of escape character \n, \b, \t, \f is found, first find the 
      * single character for the sequence \x (x = n|b|t|f) and insert to the 
@@ -1501,15 +1499,15 @@ YY_RULE_SETUP
 case 53:
 /* rule 53 can match eol */
 YY_RULE_SETUP
-#line 282 "cool.flex"
+#line 280 "cool.flex"
 {
-    /* TODO: Test for \c !!! */
+    /* Insert characters character that are not escape characters or " */
     INSERT_CHAR_TO_STRING_CONST(yytext[0]);
 }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 287 "cool.flex"
+#line 285 "cool.flex"
 {
     /* Then end of a legal string literal */
     string_buf[string_const_size] = '\0';
@@ -1521,16 +1519,16 @@ YY_RULE_SETUP
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 296 "cool.flex"
+#line 294 "cool.flex"
 {
-    /* When an error occured in the string the error ends at " */
+    /* When an error occured in the string, the error ends at " */
     BEGIN(INITIAL);
 }
 	YY_BREAK
 case 56:
 /* rule 56 can match eol */
 YY_RULE_SETUP
-#line 301 "cool.flex"
+#line 299 "cool.flex"
 {
     /* Need to update the number of lines in the INITAL state */
     curr_lineno++;
@@ -1538,12 +1536,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 306 "cool.flex"
+#line 304 "cool.flex"
 { /* Ignore white spaces */ }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 308 "cool.flex"
+#line 306 "cool.flex"
 { 
     /* A character doesn't belong to above rules is an error */
     SET_ERROR(yytext);
@@ -1551,10 +1549,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 313 "cool.flex"
+#line 311 "cool.flex"
 ECHO;
 	YY_BREAK
-#line 1557 "cool-lex.cc"
+#line 1555 "cool-lex.cc"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(STRING_ERROR):
 	yyterminate();
@@ -2704,6 +2702,6 @@ void yyfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 313 "cool.flex"
+#line 311 "cool.flex"
 
 

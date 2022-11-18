@@ -255,14 +255,12 @@ f(?i:alse)		{
      * inside a string literal, return an error */
     curr_lineno++;
     BEGIN(INITIAL);
-    yylval.error_msg = "Unterminated string constant";
-    return ERROR; 
+    SET_ERROR("Unterminated string constant");
 }
 
 <STRING><<EOF>> 	{
     /* file ends before a string literal */
-    yylval.error_msg = "EOF in string constant";
-    return ERROR;
+    SET_ERROR("EOF in string constant");
 }
 
 <STRING>\0		{ 
@@ -279,7 +277,7 @@ f(?i:alse)		{
 }
 
 <STRING>[^"\\]	{
-    /* TODO: Test for \c !!! */
+    /* Insert characters character that are not escape characters or " */
     INSERT_CHAR_TO_STRING_CONST(yytext[0]);
 }
 
@@ -293,11 +291,11 @@ f(?i:alse)		{
 }
 
 <STRING_ERROR>["] {
-    /* When an error occured in the string the error ends at " */
+    /* When an error occured in the string, the error ends at " */
     BEGIN(INITIAL);
 }
 
-\n		{
+\n	{
     /* Need to update the number of lines in the INITAL state */
     curr_lineno++;
 }
