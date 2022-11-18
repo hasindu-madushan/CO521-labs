@@ -173,7 +173,6 @@ String literals:
 		# When the unescaped new line is found (even after an error found previousely [STRING_ERROR state]) inside a string literal, program will return an error ("Unterminated string constant"). And will change the condition to INITIAL state.
 		# If the file ends before a string literal ends, program returns error ("EOF in string constant").
 		# If the lexer meets null character "\0 in a string literal, an error will be displayed ("String contains null character") and will change the condition to STRING_ERROR state.
-		# <STRING>[^"\\]??????
  
 - End of a legal string literal is catured by the program when it meets ["] while it is in STRING state.
 	- Then the found string is added to the string table.
