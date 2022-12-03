@@ -127,4 +127,5 @@ esac;
 -- Valid escape characters test
 let s: String <- "\n\f\t\b";
 
-name124 (* end let countdown
+name124 
+12.4 (* end let countdown
