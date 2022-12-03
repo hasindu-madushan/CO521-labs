@@ -140,12 +140,13 @@
     %type <formals> formal_list
     %type <formal> formal
     %type <expression> expression
+    %type <expressions> expression_list
     
     /* Precedence declarations go here. */
     %left '+' '-'
     %left '*' '/'
     %nonassoc '<' LE '='
-    %right NOT ~
+    %right NOT
 
     
     
@@ -194,10 +195,18 @@
     formal: 	OBJECTID ':' TYPEID	{ $$ = formal($1, $3); }
     ;
 
-    expression: OBJECTID { $$ = object($1); }
-
+    expression: OBJECTID  ASSIGN expression { $$ = assign($1, $3); }
+    | OBJECTID { $$ = object($1); }
+    | expression '.' OBJECTID '(' expression_list ')'  { $$ = dispatch($1, $3, $5); }
+    | expression '@' TYPEID '.' OBJECTID '(' expression_list ')' { 
+	$$ = static_dispatch($1, $3, $5, $7); }
+    | OBJECTID '(' expression_list ')' { 
+	$$ = dispatch(object(idtable.add_string("self")), $1, $3); }
     ;
     
+    expression_list: expression { $$ = single_Expressions($1); }
+    | expression_list ',' expression { $$ = append_Expressions($1, single_Expressions($3)); }
+    ;
     
     /* end of grammar */
     %%
