@@ -135,7 +135,11 @@
     %type <class_> class
     
     /* You will want to change the following line. */
-    %type <features> dummy_feature_list
+    %type <features> feature_list
+    %type <feature> feature
+    %type <formals> formal_list
+    %type <formal> formal
+    %type <expression> expression
     
     /* Precedence declarations go here. */
     
@@ -157,16 +161,36 @@
     ;
     
     /* If no parent is specified, the class inherits from the Object class. */
-    class	: CLASS TYPEID '{' dummy_feature_list '}' ';'
+    class	: CLASS TYPEID '{' feature_list '}' ';'
     { $$ = class_($2,idtable.add_string("Object"),$4,
     stringtable.add_string(curr_filename)); }
-    | CLASS TYPEID INHERITS TYPEID '{' dummy_feature_list '}' ';'
+    | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
     { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
     ;
     
     /* Feature list may be empty, but no empty features in list. */
-    dummy_feature_list:		/* empty */
+    feature_list:		/* empty */
     {  $$ = nil_Features(); }
+    | feature ';' feature_list { $$ = append_Features(single_Features($1), $3); }
+    ;
+
+    feature:	OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' {
+	$$ = method($1, $3, $6, $8); }
+    | OBJECTID '(' ')' ':' TYPEID '{' expression '}' {
+	$$ = method($1, nil_Formals(), $5, $7); }
+    | OBJECTID ':' TYPEID expression { $$ = attr($1, $3, $4); }
+    | OBJECTID ':' TYPEID { $$ = attr($1, $3, no_expr()); }
+    ;
+
+    formal_list: formal { $$ = single_Formals($1); }
+    | formal_list ',' formal { $$ = append_Formals($1, single_Formals($3)); }
+    ;
+     
+    formal: 	OBJECTID ':' TYPEID	{ $$ = formal($1, $3); }
+    ;
+
+    expression: OBJECTID { $$ = object($1); }
+    ;
     
     
     /* end of grammar */
