@@ -106,3 +106,87 @@ Instructions
 Write-up for PA2
 ----------------
 
+In the code, the following states are being used,
+	COMMENT State
+	STRING State
+	STRING_ERROR State
+	INITIAL State
+	
+	
+- when the lexer is inside a multiline comment, the state becomes -> COMMENT
+- when the lexer is inside a string literal, the state becomes -> STRING
+- when an error (null character or string is too long) is occured, the state becomes -> STRING_ERROR
+- when the "end of the string" is reached, the state becomes -> INITIAL
+
+
+Comments:
+
+- Nested comments
+ 
+ - The program has a global variable linecount to ensure that nesting is possible. It starts increasing from zero at the start of a multiline comment.
+ - This program considers "(*" as the Begining and of the multiline/nested comment. When the lexer meets "(*", then the state changes to COMMENT from whichever the state it previously was.
+ - If EOF found before the multiline comment ends, it gives an error ("EOF in comment").
+ - Program identifies "*)" as the End of the multiline comment. Then the state changes to INITIAL state. 
+ - When a new line (/n) found inside a multiline comment, the program does not do anything other than increaseing the line count
+ - Inside a comment, when the lexed meets EOF, the program ignores the content of the comment.
+ - When the lexer meets end of the comment ("*") without having entered a multiline comment, program outputs an error ("Unmatched *)").
+
+ 
+- Single line comment
+
+ - Single line/inline comments start with --, and are terminated at the end of the line.
+ - When the lexer meets it, program will consider it as in a comment until it meets a new line or EOF.
+
+ 
+Operators:
+
+- In the program, operators or single character tokens returns the ascii value of the character itself.  
+- ("@", ".", ",", "(", ")", "*", "/", "+", "-", "<", "<=", ":", ";", "{", "}", "=", "<-")
+
+
+The program considers, 
+	- The ids that start with a lower case letter is a object id
+	- The ids that start with a upper case letter is a type id
+	- The integer literal consists of one or more digits 
+	
+
+Boolean literals: Keywords are not case-insensitive except for the values true and false, which must begin with a lower-case letter.
+
+
+String literals:
+
+- String constants (C syntax)
+	- Escape sequence \c is accepted for all characters c. 
+	- The result is c, except for \n \t \b \f where '\b', '\f', '\n' and '\t' refer to backspace, formfeed, newline and tab respectively,.
+	- The macro "get_escape_char()" is used when one of /n, /t, /f or /b is detected. It will return the corresponding escape sequence by checking the yytext.
+  
+- Strings are stored into a buffer. For that, "INSERT_CHAR_TO_STRING_CONST()" is used in our program. 
+	- Since the program should prevent from inserting escape charaters (\n, \b, \t, \f) into the buffer, we filter them through "INSERT_CHAR_TO_STRING_CONST(get_escape_char())".
+	- Then, only the non-escape characters will be inserted to the buffer and for escape characters, the nessesary actions willl be taken.
+
+- Start of the string literal is detected when the lexer meets ["] and the condition becomes STRING state. At this stage, the 
+  temporary buffer used for string assembly is flushed and the string length counter is set to zero.
+	
+	-In STRING state, 
+		
+		# when one "\n" is found, the program will ignore the escaped new line but will increase the linecount and look ahead for the rest of the characters.
+		# When the unescaped new line is found (even after an error found previousely [STRING_ERROR state]) inside a string literal, program will return an error ("Unterminated string constant"). And will change the condition to INITIAL state.
+		# If the file ends before a string literal ends, program returns error ("EOF in string constant").
+		# If the lexer meets null character "\0 in a string literal, an error will be displayed ("String contains null character") and will change the condition to STRING_ERROR state.
+ 
+- End of a legal string literal is catured by the program when it meets ["] while it is in STRING state.
+	- Then the found string is added to the string table.
+ 
+- If there was an error occured in the STRING state, then it changes to STRING_ERROR state. But the end of that particular error end will be indicated at the end of the string ["] as well. 
+  Then its state changes will be from STRING_ERROR to INITIAL.
+ 
+
+New Line: The program will update the number of lines (linecount) when the lexer meets '\n' in the INITIAL state. 
+ 
+White Space: The program will ignore white spaces indicates by "\t".
+ 
+Other: A character doesn't belong to any of above rules is displayed as an error.
+
+Testing: The existing test.cl file was modified with additional characters to test the lexer. 
+
+
