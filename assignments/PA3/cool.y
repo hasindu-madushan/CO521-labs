@@ -142,6 +142,11 @@
     %type <expression> expression
     
     /* Precedence declarations go here. */
+    %left '+' '-'
+    %left '*' '/'
+    %nonassoc '<' LE '='
+    %right NOT ~
+
     
     
     %%
@@ -190,6 +195,7 @@
     ;
 
     expression: OBJECTID { $$ = object($1); }
+
     ;
     
     
