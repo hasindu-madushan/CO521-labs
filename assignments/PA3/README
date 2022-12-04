@@ -130,3 +130,176 @@ Instructions
 
 Write-up for PA3
 ----------------
+
+
+- Following are the declared types for the grammar's non-terminals in the code.
+
+	%type<program> program
+	%type<classes> class_list
+	%type<class_> class
+
+	%type <features> feature_list 
+    %type <feature> feature 
+    %type <formals> formal_list
+    %type <formal> formal
+    %type <expression> expression let_expression
+    %type <expressions> expression_list block
+    %type <case_> case_branch 
+    %type <cases> case_branch_list
+	
+
+- Next, the following precedence are declared.
+  Precedence for COOL is given in cool-manual.pdf(section 11.1)
+	   IN
+	   ASSIGN
+	   NOT
+	   < =
+	   + -
+	   * /
+	   ISVOID
+       ~
+	   @
+	   .
+       
+
+  It is also given that all binary operations are left associative except
+  assignment which is right assiciative. And the three comparisons are not
+  associative.
+
+  Referring the BISON manual (section 5.3), 
+  The precedence statements should be prefixed with %left %right
+  %nonassoc
+  The statement are declared in order of lowest to highest gor BISON
+
+
+
+- Grammar -
+
+-- The definition of program as a class_list is shown in the code for both scenarios 
+   where the class is taken as single class and several classes.
+   If no parent is specified, the class has been inherited from the Object class.
+   
+   class ->
+	- CLASS TYPEID '{' feature_list '}' ';'
+
+	- CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
+
+	-CLASS TYPEID '{' feature_list '}'
+		when there is an error inside the class
+
+
+-- feature_list
+	Here the rule is, the feature list can be empty itself, but cannot have empty features.
+
+
+-- feature
+	Methods and attribute in class. Can have a variety of ways to define
+	them. The attributes can have an initailization value or just the definition.
+
+	The methods can be defined with or without formal lists. However empty 
+	formals are taken care of when calling for them hence can use 
+	
+
+-- formals 
+	They are the Parameters for methods
+	
+
+-- expressions contain in the body of the program by referring cool-manual.
+	
+	- OBJECTID ASSIGN expression ->
+		The assignment of an expression to a variable(OBEJCTID)
+		returns a call to assign() with Symbol and expr parameters
+
+
+	- Method calls
+	
+		1) expression '.' OBJECTID '(' expression_list ')'
+			-This calls dispatch() method
+
+		2) expression '@' TYPEID '.' OBJECTID '(' expression_list ')'
+			- This calls the static_dispatch() method. 
+			- A way to access methods from the parent classes. 
+			- Here the method is called upon the expression on the right side of '@' by giving the class name
+			 (TYPEID) followed by a '.' and the method name(OBJECTID)
+		
+		3) OBJECTID '(' expression_list ')' 
+			- This calls the dispatch() method but reffering to the self object. 
+		
+		4)IF expression THEN expression ELSE expression FI
+			- Call the cond() method with the expression for the elsecase. 
+			- This is a complete if else block
+			
+		5) WHILE expression LOOP expression POOL
+			- All while the first expression is true execute the second expression. 
+			- Calls the loop() method.
+			
+		6) 	'{' block '}'
+			- expression block 
+			- Expression blocks are list of expressions sepereated by ';' and put inside '{' '}' when using in COOL language.
+			- Calls the block() method.
+			
+		7)	LET let_expression
+			- let bindings
+			- This is handled by calling thelet method.
+			- It has four forms and they are;
+				let_expression: OBJECTID ':' TYPEID IN expression
+								OBJECTID ':' TYPEID ASSIGN expression IN expression
+								OBJECTID ':' TYPEID ',' let_expression
+								OBJECTID ':' TYPEID ASSIGN expression ',' let_expression
+								error ',' let_expression ( for where any error in list of let bindings )
+		
+		8) 	CASE expression OF case_branch_list ESAC
+			- case expressions
+			- Used to have handle different options according to a given expression. 
+			- typecase() method is called passing in the selection expression.
+			- The case_branches which are defined as
+				OBJECTID ':' TYPEID DARROW expr ';' 
+			  and calls method branch().
+
+		9) NEW 
+			- This defines a new class object
+			- It calls new_() method and passing in the TYPEID. 
+			- The expression takes the form of NEW TYPEID
+
+		10)ISVOID
+			- The isvoid() method is called.
+			- The expression is as, ISVOID expression
+
+		The usual operations are in the format of expression <operations> expression as follows.
+		11) expression '+' expression
+		12) expression '-' expression
+		13) expression '*' expression
+		14) expression '/' expression
+		15) expression '<' expression
+		16) expression LE expression 
+		17) expression '=' expression
+
+		these address the functions plus(), sub(), mul(), devide(), lt(), leq(), eq() respectively
+
+		18) '~' expression
+			- negation, different format from other operations. addresses neg() function 
+
+		19) NOT expression
+			- The NOT expression is handled by calling the comp() method.
+			- Basically looks for when expression is not occuring
+
+		20) '(' expression ')'
+			- paranthesis 
+			- The expressions inside paranthesis are handled by extracting and returning the middle expression.
+				
+		21) OBJECTID
+			- This returns the a call to object() to return it as it is
+
+		22) INT_CONST
+			- This handles int consts in expression with int_const() call
+
+		23)  BOOL_CONST
+			- This handles boolean consts in expression with bool_const() call
+		
+		24) STR_CONST
+			- This handles string const in expression with string_const() call
+
+
+- Testing -
+
+	The yyerror() method shows an error when a Bison detects a parse error.
