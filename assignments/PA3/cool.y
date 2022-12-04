@@ -180,12 +180,14 @@
     stringtable.add_string(curr_filename)); }
     | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
     { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
+    | CLASS TYPEID '{' error '}' { /* when there is an error inside a class */}
     ;
     
     /* Feature list may be empty, but no empty features in list. */
     feature_list:		/* empty */
     {  $$ = nil_Features(); }
     | feature ';' feature_list { $$ = append_Features(single_Features($1), $3); }
+    | error ';' feature_list  { $$ = $3; }
     ;
 
     feature:	OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' {
@@ -212,6 +214,7 @@
     | IF expression THEN expression ELSE expression FI { $$ = cond($2, $4, $6); } 
     | WHILE expression LOOP expression POOL { $$ = loop($2, $4); }
     | '{' block '}' { $$ = block($2); } 
+    | '{' errror '}' { /* Error inside {} */ $$ = no_expr(); }
     | LET let_expression { $$ = $2; }
     | CASE expression OF case_branch_list ESAC { $$ = typcase($2, $4); }
     | NEW TYPEID { $$ = new_($2); }
@@ -244,6 +247,7 @@
     | OBJECTID ':' TYPEID ASSIGN expression IN expression  { $$ = let($1, $3, $5, $7); }
     | OBJECTID ':' TYPEID ',' let_expression { $$ = let($1, $3, no_expr(), $5); }
     | OBJECTID ':' TYPEID ASSIGN expression ',' let_expression { $$ = let($1, $3, $5, $7); }
+    | error ',' let_expression { /* error in list of let bindings */ $$ = $3; }
     ;
 
     case_branch_list: case_branch { $$ = single_Cases($1); }
