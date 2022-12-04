@@ -140,7 +140,7 @@
     %type <formals> formal_list
     %type <formal> formal
     %type <expression> expression
-    %type <expressions> expression_list
+    %type <expressions> expression_list block
     
     /* Precedence declarations go here. */
     %left '+' '-'
@@ -184,7 +184,7 @@
 	$$ = method($1, $3, $6, $8); }
     | OBJECTID '(' ')' ':' TYPEID '{' expression '}' {
 	$$ = method($1, nil_Formals(), $5, $7); }
-    | OBJECTID ':' TYPEID expression { $$ = attr($1, $3, $4); }
+    | OBJECTID ':' TYPEID ASSIGN expression { $$ = attr($1, $3, $5); }
     | OBJECTID ':' TYPEID { $$ = attr($1, $3, no_expr()); }
     ;
 
@@ -196,16 +196,23 @@
     ;
 
     expression: OBJECTID  ASSIGN expression { $$ = assign($1, $3); }
-    | OBJECTID { $$ = object($1); }
     | expression '.' OBJECTID '(' expression_list ')'  { $$ = dispatch($1, $3, $5); }
-    | expression '@' TYPEID '.' OBJECTID '(' expression_list ')' { 
+    | expression '@' TYPEID '.' OBJECTID '(' expression_list ')' { /* expr1@type1.func(expr1, expr2...) */
 	$$ = static_dispatch($1, $3, $5, $7); }
-    | OBJECTID '(' expression_list ')' { 
+    | OBJECTID '(' expression_list ')' {  /* func(expr1, expr2, ...) */
 	$$ = dispatch(object(idtable.add_string("self")), $1, $3); }
+    | IF expression THEN expression ELSE expression FI { $$ = cond($2, $4, $6); } 
+    | WHILE expression LOOP expression POOL { $$ = loop($2, $4); }
+    | '{' block '}' { $$ = block($2); } 
+    | OBJECTID { $$ = object($1); }
     ;
     
     expression_list: expression { $$ = single_Expressions($1); }
     | expression_list ',' expression { $$ = append_Expressions($1, single_Expressions($3)); }
+    ;
+
+    block: expression ';' { $$ = single_Expressions($1); }
+    | block expression ';' { $$ = append_Expressions($1, single_Expressions($2)); } 
     ;
     
     /* end of grammar */
