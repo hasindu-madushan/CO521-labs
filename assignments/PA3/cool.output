@@ -22,9 +22,6 @@ Terminals unused in grammar
     '='
 
 
-State 57 conflicts: 2 shift/reduce
-
-
 Grammar
 
     0 $accept: program $end
@@ -597,9 +594,9 @@ State 49
    17           | expression . '@' TYPEID '.' OBJECTID '(' expression_list ')'
    25 block: expression . ';'
 
-    ';'  shift, and go to state 60
     '.'  shift, and go to state 51
     '@'  shift, and go to state 52
+    ';'  shift, and go to state 60
 
 
 State 50
@@ -636,9 +633,9 @@ State 53
    16 expression: expression . '.' OBJECTID '(' expression_list ')'
    17           | expression . '@' TYPEID '.' OBJECTID '(' expression_list ')'
 
-    '}'  shift, and go to state 65
     '.'  shift, and go to state 51
     '@'  shift, and go to state 52
+    '}'  shift, and go to state 65
 
 
 State 54
@@ -686,36 +683,7 @@ State 57
     '.'  shift, and go to state 51
     '@'  shift, and go to state 52
 
-    '.'       [reduce using rule 15 (expression)]
-    '@'       [reduce using rule 15 (expression)]
     $default  reduce using rule 15 (expression)
-
-    shift/reduce conflict on token '.':
-       15 expression: OBJECTID ASSIGN expression .
-       16 expression: expression . '.' OBJECTID '(' expression_list ')'
-      Example: OBJECTID ASSIGN expression . '.' OBJECTID '(' expression_list ')'
-      Shift derivation
-        expression
-        `-> 15: OBJECTID ASSIGN expression
-                                `-> 16: expression . '.' OBJECTID '(' expression_list ')'
-      Reduce derivation
-        expression
-        `-> 16: expression                           '.' OBJECTID '(' expression_list ')'
-                `-> 15: OBJECTID ASSIGN expression .
-
-    shift/reduce conflict on token '@':
-       15 expression: OBJECTID ASSIGN expression .
-       17 expression: expression . '@' TYPEID '.' OBJECTID '(' expression_list ')'
-      Example: OBJECTID ASSIGN expression . '@' TYPEID '.' OBJECTID '(' expression_list ')'
-      Shift derivation
-        expression
-        `-> 15: OBJECTID ASSIGN expression
-                                `-> 17: expression . '@' TYPEID '.' OBJECTID '(' expression_list ')'
-      Reduce derivation
-        expression
-        `-> 17: expression                           '@' TYPEID '.' OBJECTID '(' expression_list ')'
-                `-> 15: OBJECTID ASSIGN expression .
-
 
 
 State 58
@@ -759,9 +727,9 @@ State 62
    17           | expression . '@' TYPEID '.' OBJECTID '(' expression_list ')'
    26 block: block expression . ';'
 
-    ';'  shift, and go to state 71
     '.'  shift, and go to state 51
     '@'  shift, and go to state 52
+    ';'  shift, and go to state 71
 
 
 State 63
@@ -791,9 +759,9 @@ State 66
    16 expression: expression . '.' OBJECTID '(' expression_list ')'
    17           | expression . '@' TYPEID '.' OBJECTID '(' expression_list ')'
 
-    '}'  shift, and go to state 74
     '.'  shift, and go to state 51
     '@'  shift, and go to state 52
+    '}'  shift, and go to state 74
 
 
 State 67

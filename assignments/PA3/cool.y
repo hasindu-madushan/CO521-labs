@@ -143,10 +143,13 @@
     %type <expressions> expression_list block
     
     /* Precedence declarations go here. */
+    %left ASSIGN
     %left '+' '-'
     %left '*' '/'
     %nonassoc '<' LE '='
     %right NOT
+    %left '.'
+    %left '@'
 
     
     
