@@ -135,14 +135,17 @@
     %type <class_> class
     
     /* You will want to change the following line. */
-    %type <features> feature_list
-    %type <feature> feature
+    %type <features> feature_list 
+    %type <feature> feature 
     %type <formals> formal_list
     %type <formal> formal
-    %type <expression> expression
+    %type <expression> expression let_expression
     %type <expressions> expression_list block
+    %type <case_> case_branch 
+    %type <cases> case_branch_list
     
     /* Precedence declarations go here. */
+    %nonassoc IN
     %left ASSIGN
     %left '+' '-'
     %left '*' '/'
@@ -207,6 +210,8 @@
     | IF expression THEN expression ELSE expression FI { $$ = cond($2, $4, $6); } 
     | WHILE expression LOOP expression POOL { $$ = loop($2, $4); }
     | '{' block '}' { $$ = block($2); } 
+    | LET let_expression { $$ = $2; }
+    | CASE expression OF case_branch_list ESAC { $$ = typcase($2, $4); }
     | OBJECTID { $$ = object($1); }
     ;
     
@@ -216,6 +221,19 @@
 
     block: expression ';' { $$ = single_Expressions($1); }
     | block expression ';' { $$ = append_Expressions($1, single_Expressions($2)); } 
+    ;
+
+    let_expression: OBJECTID ':' TYPEID IN expression { $$ = let($1, $3, no_expr(), $5); }
+    | OBJECTID ':' TYPEID ASSIGN expression IN expression  { $$ = let($1, $3, $5, $7); }
+    | OBJECTID ':' TYPEID ',' let_expression { $$ = let($1, $3, no_expr(), $5); }
+    | OBJECTID ':' TYPEID ASSIGN expression ',' let_expression { $$ = let($1, $3, $5, $7); }
+    ;
+
+    case_branch_list: case_branch { $$ = single_Cases($1); }
+    | case_branch_list case_branch { $$ = append_Cases($1, single_Cases($2)); }
+    ;
+
+    case_branch: OBJECTID ':' TYPEID DARROW expression ';' { $$ = branch($1, $3, $5); }
     ;
     
     /* end of grammar */
