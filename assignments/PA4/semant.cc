@@ -123,6 +123,7 @@ void ClassTable::install_basic_classes() {
 			       single_Features(method(copy, nil_Formals(), SELF_TYPE, no_expr()))),
 	       filename);
 
+
     // 
     // The IO class inherits from Object. Its methods are
     //        out_string(Str) : SELF_TYPE       writes a string to the output
@@ -221,6 +222,36 @@ ostream& ClassTable::semant_error()
     semant_errors++;                            
     return error_stream;
 } 
+
+bool ClassTable::check_cycles(Class_ for_class, Class_ current_node)
+{
+    return false;
+}
+
+void InheritanceGraph::add(Symbol parent_name, Symbol class_name)
+{
+    Node* parent_node = add_node(parent_name);
+    Node* child_node = add_node(class_name);
+
+    parent_node->children.push_front(child_node);
+    child_node->defined = true;
+}
+
+InheritanceGraph::Node* InheritanceGraph::add_node(Symbol name)
+{
+    return add_node(std::string(name->get_string(), name->get_len()));
+}
+
+InheritanceGraph::Node* InheritanceGraph::add_node(const std::string& name)
+{
+    std::map<std::string, Node*>::iterator node_it;
+    if ((node_it = name_to_node.find(name)) != name_to_node.end())
+	return node_it->second;
+	
+    return name_to_node[name] = new Node(name);
+}
+
+
 
 
 
