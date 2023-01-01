@@ -10,7 +10,7 @@
 #include "tree.h"
 #include "cool-tree.handcode.h"
 #include "cool-tree.h"
-
+#include "semant.h"
 
 // constructors' functions
 Program program_class::copy_Program()
@@ -41,6 +41,10 @@ void class__class::dump(ostream& stream, int n)
    dump_Symbol(stream, n+2, filename);
 }
 
+void class__class::add_to_inheritance_graph(InheritanceGraph& inheritance_graph) 
+{
+    inheritance_graph.add(parent, name);
+}
 
 Feature method_class::copy_Feature()
 {

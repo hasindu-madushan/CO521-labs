@@ -12,6 +12,7 @@
 #include "tree.h"
 #include "cool-tree.handcode.h"
 
+class InheritanceGraph;
 
 // define the class for phylum
 // define simple phylum - Program
@@ -35,6 +36,7 @@ class Class__class : public tree_node {
 public:
    tree_node *copy()		 { return copy_Class_(); }
    virtual Class_ copy_Class_() = 0;
+   virtual void add_to_inheritance_graph(InheritanceGraph& inheritance_graph) = 0;
 
 #ifdef Class__EXTRAS
    Class__EXTRAS
@@ -161,6 +163,7 @@ public:
    }
    Class_ copy_Class_();
    void dump(ostream& stream, int n);
+   void add_to_inheritance_graph(InheritanceGraph& inheritance_graph) override;
 
 #ifdef Class__SHARED_EXTRAS
    Class__SHARED_EXTRAS

@@ -19,7 +19,7 @@ typedef ClassTable *ClassTableP;
 
 class InheritanceGraph {
 public:
-  InheritanceGraph();
+  InheritanceGraph(Classes classes);
   ~InheritanceGraph();
   void add(Symbol parent_name, Symbol class_name);
   void add(const std::string& parent_name, const std::string& class_name);
@@ -40,8 +40,10 @@ private:
     Node(const std::string& name_, bool defined_) : name(name_), defined(defined_), parent(nullptr) { }
     /**
      * Recursively dump the entire sub tree 
+     *
+     * @param level the depth of the current node in the inheritance tree
      */
-    void dump(std::ostream& stream);
+    void dump(std::ostream& stream, int level);
   };
   
   Node* root;
@@ -77,12 +79,9 @@ private:
 
 class ClassTable {
 private:
-
-  
   int semant_errors;
-  Class_ inheritance_graph;
+  InheritanceGraph inheritance_graph;
   void install_basic_classes();
-  bool check_cycles(Class_ new_class, Class_ current_node);
   ostream& error_stream;
 
 public:

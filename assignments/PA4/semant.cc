@@ -83,10 +83,8 @@ static void initialize_constants(void)
 
 
 
-ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) {
-
-    /* Fill this in */
-
+ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr), inheritance_graph(classes) {
+    install_basic_classes();
 }
 
 void ClassTable::install_basic_classes() {
@@ -223,15 +221,12 @@ ostream& ClassTable::semant_error()
     return error_stream;
 } 
 
-bool ClassTable::check_cycles(Class_ for_class, Class_ current_node)
-{
-    return false;
-}
-
-InheritanceGraph::InheritanceGraph()
+InheritanceGraph::InheritanceGraph(Classes classes)
 {
     root = add_node("Object");
     add("Object", "int");
+    for (int i = classes->first(); classes->more(i); i = classes->next(i))
+	classes->nth(i)->add_to_inheritance_graph(*this);
 }
 
 InheritanceGraph::~InheritanceGraph()
@@ -299,17 +294,19 @@ InheritanceGraph::Node* InheritanceGraph::add_node(const std::string& name)
 
 void InheritanceGraph::dump(std::ostream& stream)
 {
-    root->dump(stream);
+    root->dump(stream, 0);
 }
 
-void InheritanceGraph::Node::dump(std::ostream& stream)
+void InheritanceGraph::Node::dump(std::ostream& stream, int level)
 {
-    stream << name << std::endl;
-    for (Node* child : children)
-    {
+    // leave the space to show the hierarchy
+    for (int i = 0; i < level; i++)
 	stream << "   ";
-	child->dump(stream);
-    }
+
+    stream << name << std::endl;
+
+    for (Node* child : children)
+	child->dump(stream, level + 1);
 }
 
 
