@@ -228,13 +228,53 @@ bool ClassTable::check_cycles(Class_ for_class, Class_ current_node)
     return false;
 }
 
+InheritanceGraph::InheritanceGraph()
+{
+    root = add_node("Object");
+    add("Object", "int");
+}
+
+InheritanceGraph::~InheritanceGraph()
+{
+    delete_node(root);
+}
+
+void InheritanceGraph::delete_node(InheritanceGraph::Node* node)
+{
+    for (auto child : node->children)
+	delete_node(child);
+
+    delete node;
+}
+
 void InheritanceGraph::add(Symbol parent_name, Symbol class_name)
 {
-    Node* parent_node = add_node(parent_name);
+    add(std::string(parent_name->get_string(), parent_name->get_len()),
+	    std::string(class_name->get_string(), class_name->get_len()));
+}
+
+void InheritanceGraph::add(const std::string& parent_name, const std::string& class_name)
+{
+    Node* parent_node = get_or_add_node(parent_name);
     Node* child_node = add_node(class_name);
 
     parent_node->children.push_front(child_node);
     child_node->defined = true;
+    child_node->parent = parent_node;
+}
+
+InheritanceGraph::Node* InheritanceGraph::get_or_add_node(Symbol name)
+{
+    return get_or_add_node(std::string(name->get_string(), name->get_len()));
+}
+
+InheritanceGraph::Node* InheritanceGraph::get_or_add_node(const std::string& name)
+{
+    std::map<std::string, Node*>::iterator node_it = name_to_node.find(name);
+    if (node_it != name_to_node.end())
+	return node_it->second;
+
+    return name_to_node[name] = new Node(name);
 }
 
 InheritanceGraph::Node* InheritanceGraph::add_node(Symbol name)
@@ -244,15 +284,33 @@ InheritanceGraph::Node* InheritanceGraph::add_node(Symbol name)
 
 InheritanceGraph::Node* InheritanceGraph::add_node(const std::string& name)
 {
-    std::map<std::string, Node*>::iterator node_it;
-    if ((node_it = name_to_node.find(name)) != name_to_node.end())
-	return node_it->second;
-	
-    return name_to_node[name] = new Node(name);
+    std::map<std::string, Node*>::iterator node_it = name_to_node.find(name);
+
+    if (node_it != name_to_node.end())
+    {
+	if (node_it->second->defined)
+	    throw std::runtime_error("Multiple definition for the class " + name);
+    }
+    else
+	name_to_node[name] = new Node(name);
+
+    return name_to_node[name];
 }
 
+void InheritanceGraph::dump(std::ostream& stream)
+{
+    root->dump(stream);
+}
 
-
+void InheritanceGraph::Node::dump(std::ostream& stream)
+{
+    stream << name << std::endl;
+    for (Node* child : children)
+    {
+	stream << "   ";
+	child->dump(stream);
+    }
+}
 
 
 /*   This is the entry point to the semantic checker.
